@@ -53,9 +53,14 @@ int main() {
 	printf("Waiting for a client to connect...\n");
 	client_addr_len = sizeof(client_addr);
 	
-	accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
+	int id = accept(server_fd, (struct sockaddr *) &client_addr, &client_addr_len);
 	printf("Client connected\n");
-	
+     
+    char* response; 
+    int code = 200;
+    char* message = "OK";
+    asprintf(&response, "HTTP/1.1 %d %s\r\n\r\n", code, message); 
+    int sent = send(id, response, strlen(response), 0);
 	close(server_fd);
 
 	return 0;
