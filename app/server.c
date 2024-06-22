@@ -50,19 +50,17 @@ void handle_request(int *client_fd) {
   request.version = strtok(NULL, "\r\n");
   printf("Host: %s\n", strtok(NULL, "\r\n") + 6);
   printf("Attempting to get user agent:\n");
-  request.user_agent = strtok(NULL, "\r\n") + 12;
+  request.user_agent = strtok(NULL, "\r\n");
   printf("User agent: %s\n", request.user_agent);
 
   // routing
   if (strcmp(request.path + 1, "") == 0) {
     make_empty_response(client_fd, 200, "OK");
   } else if (strcmp(strtok(request.path + 1, "/"), "echo") == 0) {
-    printf("Running echo\n");
-    printf("Path: %s\n", request.path);
     char* text = strtok(NULL, "/");
-    printf("Message: %s\n", text);
     make_text_response(client_fd, 200, text);
   } else if (strcmp(request.path, "/user-agent") == 0) {
+    printf("Running user agent method\n");
     make_text_response(client_fd, 200, request.user_agent);
   } else {
     make_empty_response(client_fd, 404, "Not Found");
