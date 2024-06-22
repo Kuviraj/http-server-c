@@ -49,6 +49,7 @@ void handle_request(int *client_fd) {
   printf("Path: %s\n", request.path);
   request.version = strtok(NULL, "\r\n");
   printf("Host: %s\n", strtok(NULL, "\r\n") + 6);
+  printf("Attempting to get user agent:\n");
   request.user_agent = strtok(NULL, "\r\n") + 12;
   printf("User agent: %s\n", request.user_agent);
 
@@ -122,7 +123,7 @@ int main() {
 
     int client_fd =
         accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
-    printf("Client conected\n");
+    printf("Client connected\n");
     handle_request(&client_fd);
 
     // Send response
