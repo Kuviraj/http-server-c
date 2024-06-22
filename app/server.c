@@ -49,7 +49,7 @@ void handle_request(int *client_fd) {
   printf("Path: %s\n", request.path);
   request.version = strtok(NULL, "\r\n");
   printf("Host: %s\n", strtok(NULL, "\r\n") + 6);
-  request.user_agent = strtok(NULL, "\r\n") + 12;
+  request.user_agent = strtok(NULL, "\r\n");
   printf("User agent: %s|\n", request.user_agent);
 
   // routing
@@ -58,6 +58,7 @@ void handle_request(int *client_fd) {
   } else if (strncmp(request.path+1, "echo", 4) == 0) {
     printf("Running echo\n");
     char* text = request.path + 6;
+    printf("Sending text: %s", text);
     make_text_response(client_fd, 200, text);
   } else if (strcmp(request.path, "/user-agent") == 0) {
     make_text_response(client_fd, 200, request.user_agent);
