@@ -49,18 +49,18 @@ void handle_request(int *client_fd) {
   printf("Path: %s\n", request.path);
   request.version = strtok(NULL, "\r\n");
   printf("Host: %s\n", strtok(NULL, "\r\n") + 6);
-  request.user_agent = strtok(NULL, "\r\n") + 12;
-  printf("User agent: %s|\n", request.user_agent);
 
   // routing
   if (strcmp(request.path + 1, "") == 0) {
     make_empty_response(client_fd, 200, "OK");
-  } else if (strncmp(request.path+1, "echo", 4) == 0) {
+  } else if (strncmp(request.path + 1, "echo", 4) == 0) {
     printf("Running echo\n");
-    char* text = request.path + 6;
+    char *text = request.path + 6;
     printf("Sending text: %s", text);
     make_text_response(client_fd, 200, text);
   } else if (strcmp(request.path, "/user-agent") == 0) {
+    request.user_agent = strtok(NULL, "\r\n") + 12;
+    printf("User agent: %s\n", request.user_agent);
     make_text_response(client_fd, 200, request.user_agent);
   } else {
     make_empty_response(client_fd, 404, "Not Found");
@@ -113,7 +113,7 @@ int main() {
     return 1;
   }
 
-  /*while (1) {*/
+  while (1) {
     int client_addr_len;
     struct sockaddr_in client_addr;
     printf("Waiting for a client to connect...\n");
@@ -127,7 +127,7 @@ int main() {
     // Send response
 
     close(client_fd);
-  /*}*/
+  }
 
   close(server_fd);
   return 0;
