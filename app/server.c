@@ -13,12 +13,22 @@ struct Response {
   char *path;
 };
 
-void make_response(int *client_fd, int code, char *message) {
+void make_empty_response(int *client_fd, int code, char *message) {
   char response_headers[] = "\r\n";
   char *response;
   asprintf(&response, "HTTP/1.1 %d %s\r\n\r\n", code, message);
   int sent = send(*client_fd, response, strlen(response), 0);
   send(*client_fd, response_headers, sizeof(response_headers), 0);
+  free(response);
+}
+
+void make_text_response(int *client_fd, int code, char *message) {
+  char *response;
+  asprintf(&response,
+           "HTTP/1.1 %d OK\r\nContent-Type: text/plain\r\nContent-Length: "
+           "%lu\r\n\r\n%s",
+           code, strlen(message), message);
+  ssize_t sent = send(*client_fd, response, strlen(response), 0);
   free(response);
 }
 
@@ -34,11 +44,13 @@ void handle_request(int *client_fd) {
   response.path = strtok(NULL, " ");
   printf("Path: %s\n", response.path);
   if (strcmp(response.path + 1, "") == 0) {
-    make_response(client_fd, 200, "OK");
+    make_empty_response(client_fd, 200, "OK");
+  } else if (strcmp(strtok(response.path + 1, "/"), "echo") == 0) {
+    make_text_response(client_fd, 200, strtok(NULL, "/"));
   } else {
-        make_response(client_fd, 404, "Not Found");
-    }
-
+    make_empty_response(client_fd, 404, "Not Found");
+  }
+  free(buffer);
 }
 
 int main() {
