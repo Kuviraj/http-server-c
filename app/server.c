@@ -49,8 +49,7 @@ void handle_request(int *client_fd) {
   printf("Path: %s\n", request.path);
   request.version = strtok(NULL, "\r\n");
   printf("Host: %s\n", strtok(NULL, "\r\n") + 6);
-  /*request.user_agent = strtok(NULL, "\r\n") + 12;*/
-  request.user_agent = "something/123";
+  request.user_agent = strtok(NULL, "\r\n") + 12;
   printf("User agent: %s\n", request.user_agent);
 
   // routing
