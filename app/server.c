@@ -113,7 +113,7 @@ int main() {
     return 1;
   }
 
-  while (1) {
+  /*while (1) {*/
     int client_addr_len;
     struct sockaddr_in client_addr;
     printf("Waiting for a client to connect...\n");
@@ -127,7 +127,7 @@ int main() {
     // Send response
 
     close(client_fd);
-  }
+  /*}*/
 
   close(server_fd);
   return 0;
