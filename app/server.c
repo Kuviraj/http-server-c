@@ -8,9 +8,11 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-struct Response {
+struct Request {
   char *method;
   char *path;
+  char *version;
+  char *user_agent;
 };
 
 void make_empty_response(int *client_fd, int code, char *message) {
@@ -34,19 +36,29 @@ void make_text_response(int *client_fd, int code, char *message) {
 
 void handle_request(int *client_fd) {
 
-  struct Response response;
+  struct Request request;
 
+  // create buffer to hold request
   char *buffer = (char *)malloc(1024 * sizeof(char));
   ssize_t bytes_received = recv(*client_fd, buffer, 1024, 0);
 
-  response.method = strtok(buffer, " ");
-  printf("Method: %s\n", response.method);
-  response.path = strtok(NULL, " ");
-  printf("Path: %s\n", response.path);
-  if (strcmp(response.path + 1, "") == 0) {
+  // parse request
+  request.method = strtok(buffer, " ");
+  printf("Method: %s\n", request.method);
+  request.path = strtok(NULL, " ");
+  printf("Path: %s\n", request.path);
+  request.version = strtok(NULL, "\r\n");
+  printf("Host: %s\n", strtok(NULL, "\r\n") + 6);
+  request.user_agent = strtok(NULL, "\r\n") + 12;
+  printf("User agent: %s\n", request.user_agent);
+
+  // routing
+  if (strcmp(request.path + 1, "") == 0) {
     make_empty_response(client_fd, 200, "OK");
-  } else if (strcmp(strtok(response.path + 1, "/"), "echo") == 0) {
+  } else if (strcmp(strtok(request.path + 1, "/"), "echo") == 0) {
     make_text_response(client_fd, 200, strtok(NULL, "/"));
+  } else if (strcmp(request.path, "/user-agent") == 0) {
+    make_text_response(client_fd, 200, request.user_agent);
   } else {
     make_empty_response(client_fd, 404, "Not Found");
   }
