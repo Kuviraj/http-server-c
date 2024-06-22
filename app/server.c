@@ -50,7 +50,7 @@ void handle_request(int *client_fd) {
   request.version = strtok(NULL, "\r\n");
   printf("Host: %s\n", strtok(NULL, "\r\n") + 6);
   printf("Attempting to get user agent:\n");
-  request.user_agent = strtok(NULL, "\r\n");
+  request.user_agent = strtok(NULL, "\r\n") + 12;
   printf("User agent: %s\n", request.user_agent);
 
   // routing
