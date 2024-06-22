@@ -56,7 +56,11 @@ void handle_request(int *client_fd) {
   if (strcmp(request.path + 1, "") == 0) {
     make_empty_response(client_fd, 200, "OK");
   } else if (strcmp(strtok(request.path + 1, "/"), "echo") == 0) {
-    make_text_response(client_fd, 200, strtok(NULL, "/"));
+    printf("Running echo\n");
+    printf("Path: %s\n", request.path);
+    char* text = strtok(NULL, "/");
+    printf("Message: %s\n", text);
+    make_text_response(client_fd, 200, text);
   } else if (strcmp(request.path, "/user-agent") == 0) {
     make_text_response(client_fd, 200, request.user_agent);
   } else {
