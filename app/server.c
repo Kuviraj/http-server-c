@@ -34,7 +34,7 @@ void handle_request(int *client_fd) {
   response.path = strtok(NULL, " ");
   printf("Path: %s\n", response.path);
   if (strcmp(response.path + 1, "") == 0) {
-    make_response(client_fd, 200, "Ok");
+    make_response(client_fd, 200, "OK");
   } else {
         make_response(client_fd, 404, "Not Found");
     }
