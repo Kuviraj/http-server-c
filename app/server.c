@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,14 +35,16 @@ void make_text_response(int *client_fd, int code, char *message) {
   free(response);
 }
 
-void handle_request(int *client_fd) {
-
+void *handle_request(void *arg) {
+  int *client_fd = ((int *)arg);
   struct Request request;
 
   // create buffer to hold request
   char *buffer = (char *)malloc(1024 * sizeof(char));
   ssize_t bytes_received = recv(*client_fd, buffer, 1024, 0);
-
+  if (bytes_received < 0) {
+    printf("Recieve failed: %zd", bytes_received);
+  }
   // parse request
   request.method = strtok(buffer, " ");
   printf("Method: %s\n", request.method);
@@ -56,7 +59,6 @@ void handle_request(int *client_fd) {
   } else if (strncmp(request.path + 1, "echo", 4) == 0) {
     printf("Running echo\n");
     char *text = request.path + 6;
-    printf("Sending text: %s", text);
     make_text_response(client_fd, 200, text);
   } else if (strcmp(request.path, "/user-agent") == 0) {
     request.user_agent = strtok(NULL, "\r\n") + 12;
@@ -66,6 +68,8 @@ void handle_request(int *client_fd) {
     make_empty_response(client_fd, 404, "Not Found");
   }
   free(buffer);
+  close(*client_fd);
+  return NULL;
 }
 
 int main() {
@@ -114,19 +118,28 @@ int main() {
   }
 
   while (1) {
-    int client_addr_len;
     struct sockaddr_in client_addr;
     printf("Waiting for a client to connect...\n");
-    client_addr_len = sizeof(client_addr);
+    socklen_t client_addr_len = sizeof(client_addr);
+    int *client_fd = malloc(sizeof(int));
+    if ((*client_fd = accept(server_fd, (struct sockaddr *)&client_addr,
+                             &client_addr_len)) < 0) {
+      printf("Accept failed\n");
+      continue;
+    }
 
-    int client_fd =
-        accept(server_fd, (struct sockaddr *)&client_addr, &client_addr_len);
     printf("Client connected\n");
-    handle_request(&client_fd);
-
+    /*handle_request((void*)client_fd);*/
+    pthread_t thread_id;
+    int err = pthread_create(&thread_id, 0, handle_request, (void *)client_fd);
+    if (err) {
+      printf("Thread failed\n");
+    } else {
+      printf("Thread %lu created\n", thread_id);
+    }
+    pthread_detach(thread_id);
     // Send response
-
-    close(client_fd);
+    printf("Sent response\n");
   }
 
   close(server_fd);
