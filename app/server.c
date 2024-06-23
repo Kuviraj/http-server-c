@@ -129,7 +129,7 @@ void *handle_request(void *arg) {
       printf("File1: %s\n", path);
 
       
-      /*strtok(NULL, "\r\n");*/
+      strtok(NULL, "\r\n");
       /*strtok(NULL, "\r\n");*/
       /*strtok(NULL, "\r\n");*/
       char *buffer_length = strtok(NULL, "\r\n") + 16;
