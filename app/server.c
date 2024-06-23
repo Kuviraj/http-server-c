@@ -25,6 +25,7 @@ void make_empty_response(int *client_fd, int code, char *message) {
   int sent = send(*client_fd, response, strlen(response), 0);
   send(*client_fd, response_headers, sizeof(response_headers), 0);
   free(response);
+  return;
 }
 
 void make_text_response(int *client_fd, int code, char *message) {
@@ -35,31 +36,31 @@ void make_text_response(int *client_fd, int code, char *message) {
            code, strlen(message), message);
   ssize_t sent = send(*client_fd, response, strlen(response), 0);
   free(response);
+  return;
 }
 
 void make_file_response(int *client_id, char *file_path) {
   char *response;
-  int file_fd = open(file_path, O_RDONLY);
-  if (file_fd == -1) {
+  FILE* file_ptr = fopen(file_path, "r");
+  /*int file_fd = open(file_path, O_RDONLY);*/
+  if (file_ptr == NULL) {
     make_empty_response(client_id, 404, "Not Found");
     return;
   }
-  struct stat file_stat;
-  fstat(file_fd, &file_stat);
-  off_t file_size = file_stat.st_size;
-  char *file_contents;
-  if (read(file_fd, file_contents, file_size) == 0) {
-    printf("Didnt work\n");
-  }
+  char *file_contents = malloc(2048);
+  int file_size = fread(file_contents, 1, 2048, file_ptr);
+  
   printf("Using filecontents: %s\n", file_contents);
-  printf("Size: %ld", file_size);
+  printf("Size: %d\n", file_size);
   asprintf(&response,
            "HTTP/1.1 200 OK\r\nContent-Type: "
-           "application/octet-stream\r\nContent-Length: %ld\r\n\r\n%s",
+           "application/octet-stream\r\nContent-Length: %d\r\n\r\n%s",
            file_size, file_contents);
   ssize_t sent = send(*client_id, response, strlen(response), 0);
   free(response);
-  close(file_fd);
+  free(file_contents);
+  fclose(file_ptr);
+  return;
 }
 
 void *handle_request(void *arg) {
@@ -92,6 +93,10 @@ void *handle_request(void *arg) {
     printf("User agent: %s\n", request.user_agent);
     make_text_response(client_fd, 200, request.user_agent);
   } else if (strncmp(request.path, "/files", 6) == 0) {
+    if (path_input == NULL) {
+            make_empty_response(client_fd, 404, "Not Found");
+            return NULL;
+        }
     char *path = malloc(50);
 
     strcpy(path, *path_input);
