@@ -123,12 +123,13 @@ void *handle_request(void *arg) {
 
       strcpy(path, *path_input);
       strcat(path, (request.path + 7));
-      printf("File: %s\n", path);
+      printf("File1: %s\n", path);
 
       strtok(NULL, "\r\n");
       strtok(NULL, "\r\n");
       strtok(NULL, "\r\n");
       char *buffer_length = strtok(NULL, "\r\n") + 16;
+      printf("Got to here\n");
       int length = atoi(buffer_length);
       printf("Length: %d\n", length);
       request.body = strtok(NULL, "\r\n");
