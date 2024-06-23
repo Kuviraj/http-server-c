@@ -16,6 +16,7 @@ struct Request {
   char *path;
   char *version;
   char *user_agent;
+  char *body;
 };
 char **path_input;
 void make_empty_response(int *client_fd, int code, char *message) {
@@ -41,7 +42,7 @@ void make_text_response(int *client_fd, int code, char *message) {
 
 void make_file_response(int *client_id, char *file_path) {
   char *response;
-  FILE* file_ptr = fopen(file_path, "r");
+  FILE *file_ptr = fopen(file_path, "r");
   /*int file_fd = open(file_path, O_RDONLY);*/
   if (file_ptr == NULL) {
     make_empty_response(client_id, 404, "Not Found");
@@ -49,7 +50,7 @@ void make_file_response(int *client_id, char *file_path) {
   }
   char *file_contents = malloc(2048);
   int file_size = fread(file_contents, 1, 2048, file_ptr);
-  
+
   printf("Using filecontents: %s\n", file_contents);
   printf("Size: %d\n", file_size);
   asprintf(&response,
@@ -63,6 +64,17 @@ void make_file_response(int *client_id, char *file_path) {
   return;
 }
 
+int make_file(char *file_path, int *file_length, char *message) {
+  FILE *file_ptr = fopen(file_path, "w");
+  int ret = fwrite(message, 1, *file_length, file_ptr);
+  fclose(file_ptr);
+  if (ret == sizeof(message)) {
+    printf("Worked\n");
+    return 0;
+  }
+  return -1;
+}
+
 void *handle_request(void *arg) {
   int *client_fd = ((int *)arg);
   struct Request request;
@@ -72,6 +84,7 @@ void *handle_request(void *arg) {
   ssize_t bytes_received = recv(*client_fd, buffer, 1024, 0);
   if (bytes_received < 0) {
     printf("Recieve failed: %zd", bytes_received);
+    return NULL;
   }
   // parse request
   request.method = strtok(buffer, " ");
@@ -93,18 +106,39 @@ void *handle_request(void *arg) {
     printf("User agent: %s\n", request.user_agent);
     make_text_response(client_fd, 200, request.user_agent);
   } else if (strncmp(request.path, "/files", 6) == 0) {
-    if (path_input == NULL) {
-            make_empty_response(client_fd, 404, "Not Found");
-            return NULL;
-        }
-    char *path = malloc(50);
+    if (strcmp(request.method, "GET") == 0) {
+      if (path_input == NULL) {
+        make_empty_response(client_fd, 404, "Not Found");
+        return NULL;
+      }
+      char *path = malloc(50);
 
-    strcpy(path, *path_input);
-    strcat(path, (request.path + 7));
-    printf("File: %s\n", path);
+      strcpy(path, *path_input);
+      strcat(path, (request.path + 7));
+      printf("File: %s\n", path);
 
-    make_file_response(client_fd, path);
-    free(path);
+      make_file_response(client_fd, path);
+      free(path);
+    } else if (strcmp(request.method, "POST") == 0) {
+      char *path = malloc(50);
+
+      strcpy(path, *path_input);
+      strcat(path, (request.path + 7));
+      printf("File: %s\n", path);
+
+      strtok(NULL, "\r\n");
+      strtok(NULL, "\r\n");
+      strtok(NULL, "\r\n");
+      char *buffer_length = strtok(NULL, "\r\n") + 16;
+      int length = atoi(buffer_length);
+      printf("Length: %d\n", length);
+      request.body = strtok(NULL, "\r\n");
+      printf("Data: %s\n", request.body);
+      if (make_file(path, &length, request.body)) {
+
+        make_empty_response(client_fd, 201, "Created");
+      }
+    }
   } else {
     make_empty_response(client_fd, 404, "Not Found");
   }
