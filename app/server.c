@@ -80,11 +80,13 @@ void *handle_request(void *arg) {
 
   // create buffer to hold request
   char *buffer = (char *)malloc(1024 * sizeof(char));
+  char *perm_buffer = (char*) malloc(1024 * sizeof(char));
   ssize_t bytes_received = recv(*client_fd, buffer, 1024, 0);
   if (bytes_received < 0) {
     printf("Recieve failed: %zd", bytes_received);
     return NULL;
   }
+  strcpy(perm_buffer, buffer);
   // parse request
   request.method = strtok(buffer, " ");
   printf("Method: %s\n", request.method);
@@ -119,7 +121,7 @@ void *handle_request(void *arg) {
       make_file_response(client_fd, path);
       free(path);
     } else if (strcmp(request.method, "POST") == 0) {
-      printf("Message: %s", buffer);
+      printf("Message: %s", perm_buffer);
       char *path = malloc(50);
 
       strcpy(path, *path_input);
