@@ -17,7 +17,7 @@ struct Request {
   char *version;
   char *user_agent;
 };
-
+char **path_input;
 void make_empty_response(int *client_fd, int code, char *message) {
   char response_headers[] = "\r\n";
   char *response;
@@ -49,8 +49,8 @@ void make_file_response(int *client_id, char *file_path) {
   off_t file_size = file_stat.st_size;
   char *file_contents;
   if (read(file_fd, file_contents, file_size) == 0) {
-        printf("Didnt work\n");
-    }
+    printf("Didnt work\n");
+  }
   printf("Using filecontents: %s\n", file_contents);
   asprintf(&response,
            "HTTP/1.1 200 OK\r\nContent-Type: "
@@ -90,7 +90,14 @@ void *handle_request(void *arg) {
     printf("User agent: %s\n", request.user_agent);
     make_text_response(client_fd, 200, request.user_agent);
   } else if (strncmp(request.path, "/files", 6) == 0) {
-    make_file_response(client_fd, "/tmp/test");
+    char *path = malloc(50);
+
+    strcpy(path, *path_input);
+    strcat(path, (request.path + 7));
+    printf("File: %s\n", path);
+
+    make_file_response(client_fd, path);
+    free(path);
   } else {
     make_empty_response(client_fd, 404, "Not Found");
   }
@@ -145,9 +152,8 @@ int main(int argc, char **argv) {
   }
 
   if (argc > 1) {
-    char **file_path;
-    file_path = (argv + 2);
-    printf("Using filepath: %s\n", *file_path);
+    path_input = (argv + 2);
+    printf("Using filepath: %s\n", *path_input);
   }
   while (1) {
     struct sockaddr_in client_addr;
