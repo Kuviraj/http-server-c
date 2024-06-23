@@ -58,6 +58,7 @@ void make_file_response(int *client_id, char *file_path) {
            file_size, file_contents);
   ssize_t sent = send(*client_id, response, strlen(response), 0);
   free(response);
+  close(file_fd);
 }
 
 void *handle_request(void *arg) {
