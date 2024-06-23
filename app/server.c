@@ -121,7 +121,7 @@ void *handle_request(void *arg) {
       make_file_response(client_fd, path);
       free(path);
     } else if (strcmp(request.method, "POST") == 0) {
-      printf("Message: %s", perm_buffer);
+      printf("Messae: %s", perm_buffer);
       char *path = malloc(50);
 
       strcpy(path, *path_input);
