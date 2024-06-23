@@ -131,6 +131,7 @@ void *handle_request(void *arg) {
       char *buffer_length = strtok(NULL, "\r\n") + 16;
       printf("Got to here\n");
       int length = atoi(buffer_length);
+      printf("Here?\n");
       printf("Length: %d\n", length);
       request.body = strtok(NULL, "\r\n");
       printf("Data: %s\n", request.body);
