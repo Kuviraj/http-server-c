@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <pthread.h>
@@ -6,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
 
@@ -32,6 +34,29 @@ void make_text_response(int *client_fd, int code, char *message) {
            "%lu\r\n\r\n%s",
            code, strlen(message), message);
   ssize_t sent = send(*client_fd, response, strlen(response), 0);
+  free(response);
+}
+
+void make_file_response(int *client_id, char *file_path) {
+  char *response;
+  int file_fd = open(file_path, O_RDONLY);
+  if (file_fd == -1) {
+    make_empty_response(client_id, 404, "Not Found");
+    return;
+  }
+  struct stat file_stat;
+  fstat(file_fd, &file_stat);
+  off_t file_size = file_stat.st_size;
+  char *file_contents;
+  if (read(file_fd, file_contents, file_size) == 0) {
+        printf("Didnt work\n");
+    }
+  printf("Using filecontents: %s\n", file_contents);
+  asprintf(&response,
+           "HTTP/1.1 200 OK\r\nContent-Type: "
+           "application/octet-stream\r\nContent-Length: %ld\r\n\r\n%s",
+           file_size, file_contents);
+  ssize_t sent = send(*client_id, response, strlen(response), 0);
   free(response);
 }
 
@@ -64,6 +89,8 @@ void *handle_request(void *arg) {
     request.user_agent = strtok(NULL, "\r\n") + 12;
     printf("User agent: %s\n", request.user_agent);
     make_text_response(client_fd, 200, request.user_agent);
+  } else if (strncmp(request.path, "/files", 6) == 0) {
+    make_file_response(client_fd, "/tmp/test");
   } else {
     make_empty_response(client_fd, 404, "Not Found");
   }
@@ -72,7 +99,7 @@ void *handle_request(void *arg) {
   return NULL;
 }
 
-int main() {
+int main(int argc, char **argv) {
   // Disable output buffering
   setbuf(stdout, NULL);
   setbuf(stderr, NULL);
@@ -117,6 +144,11 @@ int main() {
     return 1;
   }
 
+  if (argc > 1) {
+    char **file_path;
+    file_path = (argv + 2);
+    printf("Using filepath: %s\n", *file_path);
+  }
   while (1) {
     struct sockaddr_in client_addr;
     printf("Waiting for a client to connect...\n");
@@ -134,8 +166,6 @@ int main() {
     int err = pthread_create(&thread_id, 0, handle_request, (void *)client_fd);
     if (err) {
       printf("Thread failed\n");
-    } else {
-      printf("Thread %lu created\n", thread_id);
     }
     pthread_detach(thread_id);
     // Send response
