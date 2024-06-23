@@ -65,6 +65,8 @@ void make_file_response(int *client_id, char *file_path) {
 }
 
 int make_file(char *file_path, int *file_length, char *message) {
+  printf("Message: %s\n", message);
+  printf("File: %s\n", file_path);
   FILE *file_ptr = fopen(file_path, "w");
   int ret = fwrite(message, 1, *file_length, file_ptr);
   fclose(file_ptr);
