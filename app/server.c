@@ -68,13 +68,10 @@ int make_file(char *file_path, int *file_length, char *message) {
   printf("Message: %s\n", message);
   printf("File: %s\n", file_path);
   FILE *file_ptr = fopen(file_path, "w");
-  int ret = fwrite(message, 1, *file_length, file_ptr);
+  fputs(message, file_ptr);
   fclose(file_ptr);
-  if (ret == sizeof(message)) {
-    printf("Worked\n");
-    return 0;
-  }
-  return -1;
+  
+  return 0;
 }
 
 void *handle_request(void *arg) {
@@ -136,7 +133,7 @@ void *handle_request(void *arg) {
       printf("Length: %d\n", length);
       request.body = strtok(NULL, "\r\n");
       printf("Data: %s\n", request.body);
-      if (make_file(path, &length, request.body)) {
+      if (make_file(path, &length, request.body) == 0) {
 
         make_empty_response(client_fd, 201, "Created");
       }
