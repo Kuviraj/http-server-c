@@ -130,6 +130,7 @@ void *handle_request(void *arg) {
       strtok(NULL, "\r\n");
       char *buffer_length = strtok(NULL, "\r\n") + 16;
       printf("Got to here\n");
+      printf("Buffer length: %s", buffer_length);
       int length = atoi(buffer_length);
       printf("Here?\n");
       printf("Length: %d\n", length);
