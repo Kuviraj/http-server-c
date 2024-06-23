@@ -52,6 +52,7 @@ void make_file_response(int *client_id, char *file_path) {
     printf("Didnt work\n");
   }
   printf("Using filecontents: %s\n", file_contents);
+  printf("Size: %ld", file_size);
   asprintf(&response,
            "HTTP/1.1 200 OK\r\nContent-Type: "
            "application/octet-stream\r\nContent-Length: %ld\r\n\r\n%s",
