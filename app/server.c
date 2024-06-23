@@ -128,9 +128,10 @@ void *handle_request(void *arg) {
       strcat(path, (request.path + 7));
       printf("File1: %s\n", path);
 
-      strtok(NULL, "\r\n");
-      strtok(NULL, "\r\n");
-      strtok(NULL, "\r\n");
+      
+      /*strtok(NULL, "\r\n");*/
+      /*strtok(NULL, "\r\n");*/
+      /*strtok(NULL, "\r\n");*/
       char *buffer_length = strtok(NULL, "\r\n") + 16;
       int length = atoi(buffer_length);
       printf("Length: %d\n", length);
