@@ -14,5 +14,5 @@ and more.
 1. Ensure you have `gcc` installed locally
 1. Run `./your_server.sh` to run your program, which is implemented in
    `app/server.c`.
-1. Commit your changes and run `git push origin master` to submit your solution
+1. Commit your changes and run `git push origin main` to submit your solution
    to CodeCrafters. Test output will be streamed to your terminal.
